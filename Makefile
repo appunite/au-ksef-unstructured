@@ -1,4 +1,4 @@
-.PHONY: install dev test test-cov lint format typecheck docker-build docker-run clean
+.PHONY: install dev test test-cov lint format typecheck docker-build docker-run docker clean
 
 install:
 	uv sync
@@ -25,7 +25,9 @@ docker-build:
 	docker build -t au-ksef-unstructured .
 
 docker-run:
-	docker run -p 8080:8080 --env-file .env au-ksef-unstructured
+	docker run --rm -p 8080:8080 --env-file .env au-ksef-unstructured
+
+docker: docker-build docker-run
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +

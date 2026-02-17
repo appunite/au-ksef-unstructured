@@ -45,9 +45,11 @@ def mock_pdf_parser():
 def mock_llm_extractor():
     with patch("src.app.routes.extract.LLMExtractor") as mock_cls:
         instance = MagicMock()
-        instance.extract.return_value = {
+        return_data = {
             "invoice_number": "INV-001",
             "total_amount": 100.00,
         }
+        instance.extract_with_model.return_value = return_data
+        instance.extract_with_schema.return_value = return_data
         mock_cls.return_value = instance
         yield instance

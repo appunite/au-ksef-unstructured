@@ -11,23 +11,19 @@
     },
     "issue_date": {
       "type": "string",
-      "format": "date",
       "description": "Invoice issue date in YYYY-MM-DD format (FA(3) field P_1)"
     },
     "sales_date": {
       "type": ["string", "null"],
-      "format": "date",
       "description": "Date of sale/service delivery in YYYY-MM-DD format (FA(3) field P_6)"
     },
     "due_date": {
       "type": ["string", "null"],
-      "format": "date",
       "description": "Payment due date in YYYY-MM-DD format (FA(3) field TerminPlatnosci)"
     },
     "seller_nip": {
       "type": "string",
-      "pattern": "^\\d{10}$",
-      "description": "Seller's 10-digit Polish tax identification number (NIP)"
+      "description": "Seller's 10-digit Polish tax identification number (NIP, digits only)"
     },
     "seller_name": {
       "type": "string",
@@ -35,8 +31,7 @@
     },
     "buyer_nip": {
       "type": ["string", "null"],
-      "pattern": "^\\d{10}$",
-      "description": "Buyer's 10-digit Polish tax identification number (NIP)"
+      "description": "Buyer's 10-digit Polish tax identification number (NIP, digits only)"
     },
     "buyer_name": {
       "type": ["string", "null"],
@@ -44,7 +39,6 @@
     },
     "iban": {
       "type": ["string", "null"],
-      "pattern": "^[A-Z]{2}\\d{2}[A-Z0-9]{4}\\d{7}([A-Z0-9]?){0,16}$",
       "description": "Seller's bank account number in IBAN format (FA(3) field NrRachunkuBankowego)"
     },
     "net_amount": {
@@ -61,8 +55,7 @@
     },
     "currency": {
       "type": "string",
-      "default": "PLN",
-      "description": "ISO 4217 currency code (e.g. PLN, EUR, USD)"
+      "description": "ISO 4217 currency code (e.g. PLN, EUR, USD). Defaults to PLN if not specified on invoice."
     },
     "line_items": {
       "type": "array",

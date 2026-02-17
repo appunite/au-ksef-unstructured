@@ -1,11 +1,20 @@
+import logging
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from src.app.config import get_settings
 from src.app.routes import extract, health
 
 
 def create_app() -> FastAPI:
+    settings = get_settings()
+    logging.basicConfig(
+        level=settings.log_level.upper(),
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
+
     app = FastAPI(
         title="au-ksef-unstructured",
         description="Extract structured invoice data from PDFs",

@@ -28,7 +28,7 @@ def test_extract_full_pipeline(client, auth_header, mock_pdf_parser, mock_llm_ex
     assert body["data"]["total_amount"] == 100.0
 
     mock_pdf_parser.parse.assert_called_once()
-    mock_llm_extractor.extract.assert_called_once()
+    mock_llm_extractor.extract_with_schema.assert_called_once()
 
 
 def test_extract_uses_default_schema_when_not_provided(
@@ -44,10 +44,11 @@ def test_extract_uses_default_schema_when_not_provided(
     body = response.json()
     assert body["success"] is True
 
-    call_args = mock_llm_extractor.extract.call_args
-    schema_arg = call_args[0][1]
-    assert schema_arg["required"] == ["invoice_number", "issue_date", "seller_nip", "seller_name"]
-    assert "line_items" in schema_arg["properties"]
+    mock_llm_extractor.extract_with_model.assert_called_once()
+    call_args = mock_llm_extractor.extract_with_model.call_args
+    from src.app.schemas.invoice import InvoiceSchema
+
+    assert call_args[0][1] is InvoiceSchema
 
 
 def test_extract_rejects_empty_file(client, auth_header):
@@ -175,5 +176,5 @@ def test_extract_with_model_override(client, auth_header, mock_pdf_parser, mock_
     )
 
     assert response.status_code == 200
-    call_kwargs = mock_llm_extractor.extract.call_args
+    call_kwargs = mock_llm_extractor.extract_with_schema.call_args
     assert call_kwargs[1]["model"] == "claude-opus-4-6" or call_kwargs[0][2] == "claude-opus-4-6"
