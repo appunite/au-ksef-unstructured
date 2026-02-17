@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     anthropic_model: str = "claude-sonnet-4-5-20250929"
     log_level: str = "INFO"
     # auto | fast | ocr_only | hi_res
-    default_strategy: str = "hi_res"
+    default_strategy: str = "auto"
     default_languages: list[str] = ["eng", "pol"]
     default_pdf_infer_table_structure: bool = True
     max_upload_size_mb: int = 10

@@ -8,11 +8,9 @@ Extract structured invoice data from PDF files using `unstructured` for text ext
 PDF file ──► unstructured (text extraction) ──► Anthropic Claude (structured output) ──► JSON
 ```
 
-The service accepts:
-1. A **PDF file** containing an invoice
-2. A **JSON Schema** describing the desired output format (field names, types, descriptions)
+The service accepts a **PDF file** containing an invoice and returns structured JSON using Anthropic's Structured Output feature.
 
-It returns structured JSON guaranteed to conform to the provided schema, using Anthropic's Structured Output feature.
+By default it extracts Polish KSeF invoice fields (invoice number, NIP, dates, amounts, line items, etc.). You can also provide a custom **JSON Schema** to extract any fields you need.
 
 ## Setup
 
@@ -43,8 +41,10 @@ Optional:
 - `ANTHROPIC_MODEL` — Default model (default: `claude-sonnet-4-5-20250929`)
 - `LOG_LEVEL` — Logging level (default: `INFO`)
 - `DEFAULT_STRATEGY` — Unstructured parsing strategy (default: `auto`)
-- `DEFAULT_LANGUAGES` — OCR languages as JSON array (default: `["eng"]`)
+- `DEFAULT_LANGUAGES` — OCR languages as JSON array (default: `["eng", "pol"]`)
 - `DEFAULT_PDF_INFER_TABLE_STRUCTURE` — Infer tables (default: `true`)
+- `MAX_UPLOAD_SIZE_MB` — Maximum PDF upload size (default: `10`)
+- `ANTHROPIC_TIMEOUT` — API request timeout in seconds (default: `120`)
 
 ## Usage
 
@@ -65,11 +65,19 @@ Extract structured data from a PDF invoice.
 
 **Form fields:**
 - `file` — PDF file (required)
-- `output_schema` — JSON Schema string describing desired output (required)
+- `output_schema` — JSON Schema string describing desired output (optional; uses built-in KSeF invoice schema when omitted)
 - `unstructured_settings` — JSON string with unstructured overrides (optional)
 - `model` — Anthropic model override (optional)
 
-**Example:**
+**Default extraction** (Polish KSeF invoice fields):
+
+```bash
+curl -X POST http://localhost:8000/extract \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -F "file=@invoice.pdf"
+```
+
+**Custom schema** (all fields must be `required`; use `anyOf` with `null` for nullable fields):
 
 ```bash
 curl -X POST http://localhost:8000/extract \
@@ -83,7 +91,7 @@ curl -X POST http://localhost:8000/extract \
         "description": "Unique invoice identifier (e.g. INV-2025-001)"
       },
       "total_amount": {
-        "type": "number",
+        "anyOf": [{"type": "number"}, {"type": "null"}],
         "description": "Total invoice amount including tax"
       },
       "vendor_name": {
@@ -91,7 +99,8 @@ curl -X POST http://localhost:8000/extract \
         "description": "Name of the company that issued the invoice"
       }
     },
-    "required": ["invoice_number", "total_amount"]
+    "required": ["invoice_number", "total_amount", "vendor_name"],
+    "additionalProperties": false
   }'
 ```
 
@@ -128,8 +137,9 @@ make typecheck   # Type checking
 ## Docker
 
 ```bash
-make docker-build
-make docker-run
+make docker       # Build and run
+make docker-build # Build only
+make docker-run   # Run only
 ```
 
 ## License
