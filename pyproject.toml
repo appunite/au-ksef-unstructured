@@ -1,0 +1,36 @@
+[project]
+name = "au-ksef-unstructured"
+version = "0.1.0"
+description = "Extract structured invoice data from PDFs using unstructured + Anthropic Claude"
+requires-python = ">=3.11.7"
+dependencies = [
+    "anthropic>=0.79.0",
+    "fastapi>=0.129.0",
+    "pydantic-settings>=2.13.0",
+    "python-multipart>=0.0.22",
+    "unstructured[pdf]>=0.20.2",
+    "uvicorn[standard]>=0.41.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "mypy>=1.19.1",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "ruff>=0.15.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
