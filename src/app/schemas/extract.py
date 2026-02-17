@@ -8,7 +8,12 @@ class UnstructuredSettings(BaseModel):
     include_page_breaks: bool = False
 
 
+class ErrorDetail(BaseModel):
+    code: str
+    message: str
+
+
 class ExtractionResponse(BaseModel):
     success: bool
     data: dict | None = None
-    error: str | None = None
+    error: ErrorDetail | None = None

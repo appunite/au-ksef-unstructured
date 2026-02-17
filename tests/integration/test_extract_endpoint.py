@@ -42,7 +42,10 @@ def test_extract_rejects_non_pdf(client, auth_header):
     )
 
     assert response.status_code == 400
-    assert "PDF" in response.json()["detail"]
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "validation_error"
+    assert "PDF" in body["error"]["message"]
 
 
 def test_extract_rejects_invalid_schema_json(client, auth_header):
@@ -54,7 +57,10 @@ def test_extract_rejects_invalid_schema_json(client, auth_header):
     )
 
     assert response.status_code == 400
-    assert "output_schema" in response.json()["detail"]
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "validation_error"
+    assert "output_schema" in body["error"]["message"]
 
 
 def test_extract_rejects_invalid_unstructured_settings(client, auth_header):
@@ -68,7 +74,10 @@ def test_extract_rejects_invalid_unstructured_settings(client, auth_header):
     )
 
     assert response.status_code == 400
-    assert "unstructured_settings" in response.json()["detail"]
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "validation_error"
+    assert "unstructured_settings" in body["error"]["message"]
 
 
 def test_extract_with_custom_unstructured_settings(

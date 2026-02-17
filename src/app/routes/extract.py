@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 
 from src.app.config import Settings, get_settings
 from src.app.dependencies import verify_token
-from src.app.schemas.extract import ExtractionResponse, UnstructuredSettings
+from src.app.schemas.extract import ErrorDetail, ExtractionResponse, UnstructuredSettings
 from src.app.services.llm_extractor import LLMExtractor
 from src.app.services.pdf_parser import PDFParser
 
@@ -67,4 +67,7 @@ async def extract_invoice(
 
     except Exception as e:
         logger.exception("Extraction failed")
-        return ExtractionResponse(success=False, error=str(e))
+        return ExtractionResponse(
+            success=False,
+            error=ErrorDetail(code="internal_error", message=str(e)),
+        )
