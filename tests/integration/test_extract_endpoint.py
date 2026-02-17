@@ -50,6 +50,51 @@ def test_extract_uses_default_schema_when_not_provided(
     assert "line_items" in schema_arg["properties"]
 
 
+def test_extract_rejects_empty_file(client, auth_header):
+    response = client.post(
+        "/extract",
+        headers=auth_header,
+        files={"file": ("invoice.pdf", io.BytesIO(b""), "application/pdf")},
+    )
+
+    assert response.status_code == 400
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "validation_error"
+    assert "empty" in body["error"]["message"].lower()
+
+
+def test_extract_rejects_file_exceeding_size_limit(client, auth_header):
+    # Default limit is 10 MB; send just over
+    oversized = b"%" * (10 * 1024 * 1024 + 1)
+    response = client.post(
+        "/extract",
+        headers=auth_header,
+        files={"file": ("invoice.pdf", io.BytesIO(oversized), "application/pdf")},
+    )
+
+    assert response.status_code == 400
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "validation_error"
+    assert "size" in body["error"]["message"].lower()
+
+
+def test_extract_rejects_schema_without_properties(client, auth_header):
+    response = client.post(
+        "/extract",
+        headers=auth_header,
+        data={"output_schema": json.dumps({"type": "string"})},
+        files={"file": ("invoice.pdf", io.BytesIO(b"%PDF-1.4 test"), "application/pdf")},
+    )
+
+    assert response.status_code == 400
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "validation_error"
+    assert "properties" in body["error"]["message"]
+
+
 def test_extract_rejects_non_pdf(client, auth_header):
     schema = json.dumps({"type": "object", "properties": {}})
 

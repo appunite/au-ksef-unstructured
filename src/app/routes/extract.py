@@ -33,11 +33,28 @@ async def extract_invoice(
     if file.content_type not in ("application/pdf", "application/octet-stream"):
         raise HTTPException(status_code=400, detail="File must be a PDF")
 
+    pdf_content = await file.read()
+
+    if len(pdf_content) == 0:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+    max_bytes = settings.max_upload_size_mb * 1024 * 1024
+    if len(pdf_content) > max_bytes:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File exceeds maximum size of {settings.max_upload_size_mb} MB",
+        )
+
     if output_schema is not None:
         try:
             schema_dict = json.loads(output_schema)
         except json.JSONDecodeError as e:
             raise HTTPException(status_code=400, detail=f"Invalid output_schema JSON: {e}")
+        if not isinstance(schema_dict, dict) or "properties" not in schema_dict:
+            raise HTTPException(
+                status_code=400,
+                detail="output_schema must be a JSON Schema object with a 'properties' key",
+            )
     else:
         schema_dict = _load_default_schema()
 
@@ -65,8 +82,6 @@ async def extract_invoice(
     resolved_model = model or settings.anthropic_model
 
     try:
-        pdf_content = await file.read()
-
         parser = PDFParser()
         text = parser.parse(pdf_content, pdf_settings)
 

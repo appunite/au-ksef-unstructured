@@ -99,9 +99,11 @@
             "description": "VAT rate as percentage, e.g. 23, 8, 5, 0 (FA(3) field P_12)"
           }
         },
-        "required": ["line_number", "description"]
+        "required": ["line_number", "description"],
+        "additionalProperties": false
       }
     }
   },
-  "required": ["invoice_number", "issue_date", "seller_nip", "seller_name"]
+  "required": ["invoice_number", "issue_date", "seller_nip", "seller_name"],
+  "additionalProperties": false
 }

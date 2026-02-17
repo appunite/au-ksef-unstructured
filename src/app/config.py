@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     default_strategy: str = "auto"
     default_languages: list[str] = ["eng", "pol"]
     default_pdf_infer_table_structure: bool = True
+    max_upload_size_mb: int = 10
 
     model_config = SettingsConfigDict(env_file=".env")
 
