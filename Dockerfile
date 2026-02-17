@@ -15,6 +15,8 @@ RUN uv sync --frozen --no-dev
 
 FROM python:3.11-slim
 
+LABEL org.opencontainers.image.source=https://github.com/emilwojtaszek/au-ksef-unstructured
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     tesseract-ocr \
