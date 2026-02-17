@@ -1,0 +1,107 @@
+{
+  "type": "object",
+  "properties": {
+    "ksef_number": {
+      "type": ["string", "null"],
+      "description": "KSeF reference number assigned by the National e-Invoice System (e.g. 1234567890-20250115-AABBCCDD-01)"
+    },
+    "invoice_number": {
+      "type": "string",
+      "description": "Sequential invoice identifier (FA(3) field P_2, e.g. FV/2025/01/001)"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Invoice issue date in YYYY-MM-DD format (FA(3) field P_1)"
+    },
+    "sales_date": {
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "Date of sale/service delivery in YYYY-MM-DD format (FA(3) field P_6)"
+    },
+    "due_date": {
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "Payment due date in YYYY-MM-DD format (FA(3) field TerminPlatnosci)"
+    },
+    "seller_nip": {
+      "type": "string",
+      "pattern": "^\\d{10}$",
+      "description": "Seller's 10-digit Polish tax identification number (NIP)"
+    },
+    "seller_name": {
+      "type": "string",
+      "description": "Full name of the selling company or person"
+    },
+    "buyer_nip": {
+      "type": ["string", "null"],
+      "pattern": "^\\d{10}$",
+      "description": "Buyer's 10-digit Polish tax identification number (NIP)"
+    },
+    "buyer_name": {
+      "type": ["string", "null"],
+      "description": "Full name of the buying company or person"
+    },
+    "iban": {
+      "type": ["string", "null"],
+      "pattern": "^[A-Z]{2}\\d{2}[A-Z0-9]{4}\\d{7}([A-Z0-9]?){0,16}$",
+      "description": "Seller's bank account number in IBAN format (FA(3) field NrRachunkuBankowego)"
+    },
+    "net_amount": {
+      "type": ["number", "null"],
+      "description": "Total net amount excluding VAT (FA(3) field P_13_1)"
+    },
+    "vat_amount": {
+      "type": ["number", "null"],
+      "description": "Total VAT amount (FA(3) field P_14_1)"
+    },
+    "gross_amount": {
+      "type": ["number", "null"],
+      "description": "Total gross amount including VAT (FA(3) field P_15)"
+    },
+    "currency": {
+      "type": "string",
+      "default": "PLN",
+      "description": "ISO 4217 currency code (e.g. PLN, EUR, USD)"
+    },
+    "line_items": {
+      "type": "array",
+      "description": "Individual invoice line items",
+      "items": {
+        "type": "object",
+        "properties": {
+          "line_number": {
+            "type": "integer",
+            "description": "Sequential line number (NrWierszaFa)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Product or service description (FA(3) field P_7)"
+          },
+          "unit": {
+            "type": ["string", "null"],
+            "description": "Unit of measure, e.g. szt., kg, godz. (FA(3) field P_8A)"
+          },
+          "quantity": {
+            "type": ["number", "null"],
+            "description": "Quantity of items (FA(3) field P_8B)"
+          },
+          "unit_price": {
+            "type": ["number", "null"],
+            "description": "Price per unit net of VAT (FA(3) field P_9A)"
+          },
+          "net_amount": {
+            "type": ["number", "null"],
+            "description": "Line net amount (FA(3) field P_11)"
+          },
+          "vat_rate": {
+            "type": ["number", "null"],
+            "description": "VAT rate as percentage, e.g. 23, 8, 5, 0 (FA(3) field P_12)"
+          }
+        },
+        "required": ["line_number", "description"]
+      }
+    }
+  },
+  "required": ["invoice_number", "issue_date", "seller_nip", "seller_name"]
+}

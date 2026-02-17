@@ -31,6 +31,25 @@ def test_extract_full_pipeline(client, auth_header, mock_pdf_parser, mock_llm_ex
     mock_llm_extractor.extract.assert_called_once()
 
 
+def test_extract_uses_default_schema_when_not_provided(
+    client, auth_header, mock_pdf_parser, mock_llm_extractor
+):
+    response = client.post(
+        "/extract",
+        headers=auth_header,
+        files={"file": ("invoice.pdf", io.BytesIO(b"%PDF-1.4 test"), "application/pdf")},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+
+    call_args = mock_llm_extractor.extract.call_args
+    schema_arg = call_args[0][1]
+    assert schema_arg["required"] == ["invoice_number", "issue_date", "seller_nip", "seller_name"]
+    assert "line_items" in schema_arg["properties"]
+
+
 def test_extract_rejects_non_pdf(client, auth_header):
     schema = json.dumps({"type": "object", "properties": {}})
 

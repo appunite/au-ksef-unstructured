@@ -1,5 +1,6 @@
 import json
 import logging
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 
@@ -13,11 +14,17 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+_DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas" / "default_invoice_schema.json"
+
+
+def _load_default_schema() -> dict:
+    return json.loads(_DEFAULT_SCHEMA_PATH.read_text())
+
 
 @router.post("/extract", response_model=ExtractionResponse)
 async def extract_invoice(
     file: UploadFile,
-    output_schema: str = Form(...),
+    output_schema: str | None = Form(None),
     unstructured_settings: str | None = Form(None),
     model: str | None = Form(None),
     _token: str = Depends(verify_token),
@@ -26,10 +33,13 @@ async def extract_invoice(
     if file.content_type not in ("application/pdf", "application/octet-stream"):
         raise HTTPException(status_code=400, detail="File must be a PDF")
 
-    try:
-        schema_dict = json.loads(output_schema)
-    except json.JSONDecodeError as e:
-        raise HTTPException(status_code=400, detail=f"Invalid output_schema JSON: {e}")
+    if output_schema is not None:
+        try:
+            schema_dict = json.loads(output_schema)
+        except json.JSONDecodeError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid output_schema JSON: {e}")
+    else:
+        schema_dict = _load_default_schema()
 
     if unstructured_settings:
         try:
