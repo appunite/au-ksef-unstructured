@@ -2,7 +2,7 @@ import json
 import logging
 import time
 
-from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from src.app.config import Settings, get_settings
 from src.app.dependencies import verify_token
@@ -13,15 +13,59 @@ from src.app.services.pdf_parser import PDFParser
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(tags=["Extraction"])
+
+_ERROR_RESPONSES: dict[int | str, dict] = {
+    400: {
+        "description": "Invalid request (bad PDF, empty file, invalid JSON)",
+        "model": ExtractionResponse,
+    },
+    401: {
+        "description": "Missing or invalid bearer token",
+        "model": ExtractionResponse,
+    },
+    403: {
+        "description": "Token valid but not authorized",
+        "model": ExtractionResponse,
+    },
+    422: {
+        "description": "Request validation error (missing required fields)",
+        "model": ExtractionResponse,
+    },
+    500: {
+        "description": "Internal server error during extraction",
+        "model": ExtractionResponse,
+    },
+}
 
 
-@router.post("/extract", response_model=ExtractionResponse)
+@router.post(
+    "/extract",
+    summary="Extract structured data from a PDF invoice",
+    description="Upload a PDF invoice and receive structured JSON data. "
+    "The PDF is parsed with `unstructured`, then sent to Anthropic Claude "
+    "for structured extraction. Optionally provide a custom JSON Schema "
+    "or override PDF parsing settings.",
+    response_model=ExtractionResponse,
+    responses=_ERROR_RESPONSES,
+)
 async def extract_invoice(
-    file: UploadFile,
-    output_schema: str | None = Form(None),
-    unstructured_settings: str | None = Form(None),
-    model: str | None = Form(None),
+    file: UploadFile = File(description="PDF invoice file to extract data from"),
+    output_schema: str | None = Form(
+        None,
+        description="Optional custom JSON Schema for extraction output. "
+        "Must be a JSON object with a 'properties' key.",
+    ),
+    unstructured_settings: str | None = Form(
+        None,
+        description="Optional JSON object to override PDF parsing settings "
+        "(strategy, languages, pdf_infer_table_structure, include_page_breaks).",
+    ),
+    model: str | None = Form(
+        None,
+        description="Anthropic model ID to use (e.g. claude-sonnet-4-5-20250929). "
+        "Defaults to the server-configured model.",
+    ),
     _token: str = Depends(verify_token),
     settings: Settings = Depends(get_settings),
 ) -> ExtractionResponse:
@@ -68,7 +112,7 @@ async def extract_invoice(
         )
     else:
         pdf_settings = UnstructuredSettings(
-            strategy=settings.default_strategy,
+            strategy=settings.default_strategy,  # type: ignore[arg-type]
             languages=settings.default_languages,
             pdf_infer_table_structure=settings.default_pdf_infer_table_structure,
         )
