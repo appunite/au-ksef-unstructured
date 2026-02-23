@@ -15,10 +15,26 @@ def create_app() -> FastAPI:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
 
+    tags_metadata = [
+        {
+            "name": "Extraction",
+            "description": "Upload PDF invoices and extract structured data via OCR + LLM.",
+        },
+        {
+            "name": "System",
+            "description": "Operational endpoints for health checks and monitoring.",
+        },
+    ]
+
     app = FastAPI(
         title="au-ksef-unstructured",
-        description="Extract structured invoice data from PDFs",
+        description=(
+            "Microservice that extracts structured invoice data from PDF files. "
+            "PDFs are parsed with `unstructured`, then processed by Anthropic Claude "
+            "to produce KSeF-compatible JSON output."
+        ),
         version="0.1.0",
+        openapi_tags=tags_metadata,
     )
     app.include_router(health.router)
     app.include_router(extract.router)
