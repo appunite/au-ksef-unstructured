@@ -149,7 +149,9 @@ def test_extract_with_schema_uses_model_override(mock_anthropic_cls):
     mock_client.messages.create.return_value = mock_response
 
     extractor = LLMExtractor(api_key="sk-test", model="claude-sonnet-4-5-20250929")
-    extractor.extract_with_schema("text", {"type": "object", "properties": {}}, model="claude-opus-4-6")
+    extractor.extract_with_schema(
+        "text", {"type": "object", "properties": {}}, model="claude-opus-4-6"
+    )
 
     call_kwargs = mock_client.messages.create.call_args.kwargs
     assert call_kwargs["model"] == "claude-opus-4-6"

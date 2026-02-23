@@ -75,9 +75,7 @@ class LLMExtractor:
 
         return response.parsed_output.model_dump()
 
-    def extract_with_schema(
-        self, text: str, output_schema: dict, model: str | None = None
-    ) -> dict:
+    def extract_with_schema(self, text: str, output_schema: dict, model: str | None = None) -> dict:
         """Extract structured data using a raw JSON Schema dict.
 
         Uses transform_schema() to clean the schema before passing
