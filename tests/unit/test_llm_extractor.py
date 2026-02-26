@@ -93,6 +93,44 @@ def test_extract_with_model_includes_document_text_in_prompt(mock_anthropic_cls)
     call_kwargs = mock_client.messages.parse.call_args.kwargs
     user_message = call_kwargs["messages"][0]["content"]
     assert "Invoice from Acme Corp" in user_message
+    assert "expert at extracting structured data from invoices" in user_message
+
+
+@patch("src.app.services.llm_extractor.anthropic.Anthropic")
+def test_extract_with_model_includes_context_in_prompt(mock_anthropic_cls):
+    mock_client = MagicMock()
+    mock_anthropic_cls.return_value = mock_client
+
+    mock_response = MagicMock()
+    mock_response.parsed_output = _TestModel(invoice_number="X", total_amount=0)
+    mock_client.messages.parse.return_value = mock_response
+
+    extractor = LLMExtractor(api_key="sk-test", model="claude-sonnet-4-5-20250929")
+    extractor.extract_with_model(
+        "Invoice text", _TestModel, context="This is a Polish VAT invoice"
+    )
+
+    call_kwargs = mock_client.messages.parse.call_args.kwargs
+    user_message = call_kwargs["messages"][0]["content"]
+    assert "This is a Polish VAT invoice" in user_message
+
+
+@patch("src.app.services.llm_extractor.anthropic.Anthropic")
+def test_extract_with_model_no_context_leaves_clean_prompt(mock_anthropic_cls):
+    mock_client = MagicMock()
+    mock_anthropic_cls.return_value = mock_client
+
+    mock_response = MagicMock()
+    mock_response.parsed_output = _TestModel(invoice_number="X", total_amount=0)
+    mock_client.messages.parse.return_value = mock_response
+
+    extractor = LLMExtractor(api_key="sk-test", model="claude-sonnet-4-5-20250929")
+    extractor.extract_with_model("Invoice text", _TestModel)
+
+    call_kwargs = mock_client.messages.parse.call_args.kwargs
+    user_message = call_kwargs["messages"][0]["content"]
+    # No extra blank lines between rules and document text
+    assert "not clearly stated.\n\nDocument text:" in user_message
 
 
 # --- extract_with_schema tests ---
@@ -173,3 +211,47 @@ def test_extract_with_schema_uses_default_model(mock_anthropic_cls):
 
     call_kwargs = mock_client.messages.create.call_args.kwargs
     assert call_kwargs["model"] == "claude-sonnet-4-5-20250929"
+
+
+@patch("src.app.services.llm_extractor.anthropic.Anthropic")
+def test_extract_with_schema_includes_context_in_prompt(mock_anthropic_cls):
+    mock_client = MagicMock()
+    mock_anthropic_cls.return_value = mock_client
+
+    mock_content_block = MagicMock()
+    mock_content_block.text = "{}"
+    mock_response = MagicMock()
+    mock_response.content = [mock_content_block]
+    mock_client.messages.create.return_value = mock_response
+
+    extractor = LLMExtractor(api_key="sk-test", model="claude-sonnet-4-5-20250929")
+    extractor.extract_with_schema(
+        "Invoice text",
+        {"type": "object", "properties": {}},
+        context="Expected currency: USD",
+    )
+
+    call_kwargs = mock_client.messages.create.call_args.kwargs
+    user_message = call_kwargs["messages"][0]["content"]
+    assert "Expected currency: USD" in user_message
+
+
+@patch("src.app.services.llm_extractor.anthropic.Anthropic")
+def test_extract_with_schema_no_context_leaves_clean_prompt(mock_anthropic_cls):
+    mock_client = MagicMock()
+    mock_anthropic_cls.return_value = mock_client
+
+    mock_content_block = MagicMock()
+    mock_content_block.text = "{}"
+    mock_response = MagicMock()
+    mock_response.content = [mock_content_block]
+    mock_client.messages.create.return_value = mock_response
+
+    extractor = LLMExtractor(api_key="sk-test", model="claude-sonnet-4-5-20250929")
+    extractor.extract_with_schema(
+        "Invoice text", {"type": "object", "properties": {}}
+    )
+
+    call_kwargs = mock_client.messages.create.call_args.kwargs
+    user_message = call_kwargs["messages"][0]["content"]
+    assert "not clearly stated.\n\nDocument text:" in user_message

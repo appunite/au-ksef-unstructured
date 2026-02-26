@@ -66,6 +66,14 @@ async def extract_invoice(
         description="Anthropic model ID to use (e.g. claude-sonnet-4-5-20250929). "
         "Defaults to the server-configured model.",
     ),
+    context: str | None = Form(
+        None,
+        description="Optional free-text context to improve extraction accuracy. "
+        "Examples: 'This is a Polish VAT invoice (Faktura VAT)', "
+        "'Seller is AppUnite S.A., NIP 5261040828', "
+        "'Expected currency: USD'. "
+        "Injected into the LLM prompt alongside the OCR text.",
+    ),
     _token: str = Depends(verify_token),
     settings: Settings = Depends(get_settings),
 ) -> ExtractionResponse:
@@ -143,9 +151,13 @@ async def extract_invoice(
             timeout=settings.anthropic_timeout,
         )
         if schema_dict is not None:
-            data = extractor.extract_with_schema(text, schema_dict, model=resolved_model)
+            data = extractor.extract_with_schema(
+                text, schema_dict, model=resolved_model, context=context
+            )
         else:
-            data = extractor.extract_with_model(text, InvoiceSchema, model=resolved_model)
+            data = extractor.extract_with_model(
+                text, InvoiceSchema, model=resolved_model, context=context
+            )
         t2 = time.monotonic()
         logger.info("LLM extraction: %d fields in %.1fs", len(data), t2 - t1)
         logger.info("Total request time: %.1fs", t2 - t0)

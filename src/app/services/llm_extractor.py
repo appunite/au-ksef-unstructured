@@ -33,7 +33,11 @@ class LLMExtractor:
         self.default_model = model
 
     def extract_with_model(
-        self, text: str, output_format: type[T], model: str | None = None
+        self,
+        text: str,
+        output_format: type[T],
+        model: str | None = None,
+        context: str | None = None,
     ) -> dict:
         """Extract structured data using a Pydantic model.
 
@@ -44,12 +48,16 @@ class LLMExtractor:
             text: Document text extracted from PDF.
             output_format: Pydantic model class defining the output structure.
             model: Optional model override.
+            context: Optional free-text context to improve extraction accuracy.
 
         Returns:
             dict from the parsed Pydantic model.
         """
         resolved_model = model or self.default_model
-        prompt = EXTRACTION_PROMPT.format(document_text=text)
+        prompt = EXTRACTION_PROMPT.format(
+            document_text=text,
+            context=f"\n{context}\n" if context else "",
+        )
 
         logger.info(
             "Calling Anthropic API (parse): model=%s prompt_length=%d output_format=%s",
@@ -75,7 +83,13 @@ class LLMExtractor:
 
         return response.parsed_output.model_dump()
 
-    def extract_with_schema(self, text: str, output_schema: dict, model: str | None = None) -> dict:
+    def extract_with_schema(
+        self,
+        text: str,
+        output_schema: dict,
+        model: str | None = None,
+        context: str | None = None,
+    ) -> dict:
         """Extract structured data using a raw JSON Schema dict.
 
         Uses transform_schema() to clean the schema before passing
@@ -85,12 +99,16 @@ class LLMExtractor:
             text: Document text extracted from PDF.
             output_schema: JSON Schema dict with field names, types, and descriptions.
             model: Optional model override.
+            context: Optional free-text context to improve extraction accuracy.
 
         Returns:
             dict guaranteed to conform to output_schema.
         """
         resolved_model = model or self.default_model
-        prompt = EXTRACTION_PROMPT.format(document_text=text)
+        prompt = EXTRACTION_PROMPT.format(
+            document_text=text,
+            context=f"\n{context}\n" if context else "",
+        )
         transformed = transform_schema(output_schema)
 
         logger.info(
