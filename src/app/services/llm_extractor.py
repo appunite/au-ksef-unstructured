@@ -81,6 +81,9 @@ class LLMExtractor:
             response.stop_reason,
         )
 
+        if response.parsed_output is None:
+            raise ValueError("Anthropic API returned no parsed output")
+
         return response.parsed_output.model_dump()
 
     def extract_with_schema(
@@ -138,4 +141,9 @@ class LLMExtractor:
             response.stop_reason,
         )
 
-        return json.loads(response.content[0].text)
+        block = response.content[0]
+        if not hasattr(block, "text"):
+            raise ValueError(f"Unexpected content block type: {type(block).__name__}")
+
+        result: dict = json.loads(block.text)  # type: ignore[union-attr]
+        return result
