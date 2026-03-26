@@ -30,8 +30,16 @@ class PDFParser:
         """Extract text using pdf2image + tesseract OCR."""
         import pytesseract
 
+        available = set(pytesseract.get_languages())
+        valid = [lang for lang in languages if lang in available]
+        if not valid:
+            raise ValueError(
+                f"None of the requested languages {languages} are installed. "
+                f"Available: {sorted(available)}"
+            )
+
         images = convert_from_bytes(pdf_content)
-        lang = "+".join(languages)
+        lang = "+".join(valid)
         pages = []
         for image in images:
             pages.append(pytesseract.image_to_string(image, lang=lang))

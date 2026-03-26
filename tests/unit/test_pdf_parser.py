@@ -46,7 +46,12 @@ def test_parse_ocr_strategy_uses_tesseract(mock_convert):
 
     settings = UnstructuredSettings(strategy="ocr_only", languages=["eng", "pol"])
 
-    with patch.object(pytesseract, "image_to_string", return_value="OCR text") as mock_ocr:
+    with (
+        patch.object(
+            pytesseract, "get_languages", return_value=["eng", "osd", "pol"]
+        ),
+        patch.object(pytesseract, "image_to_string", return_value="OCR text") as mock_ocr,
+    ):
         parser = PDFParser()
         result = parser.parse(b"%PDF-1.4 test", settings)
 
@@ -66,10 +71,29 @@ def test_parse_auto_falls_back_to_ocr_when_no_text(mock_convert, mock_extract):
 
     settings = UnstructuredSettings(strategy="auto", languages=["eng"])
 
-    with patch.object(pytesseract, "image_to_string", return_value="OCR fallback"):
+    with (
+        patch.object(pytesseract, "get_languages", return_value=["eng", "osd"]),
+        patch.object(pytesseract, "image_to_string", return_value="OCR fallback"),
+    ):
         parser = PDFParser()
         result = parser.parse(b"%PDF-1.4 test", settings)
 
     mock_extract.assert_called_once()
     mock_convert.assert_called_once()
     assert result == "OCR fallback"
+
+
+@patch("src.app.services.pdf_parser.convert_from_bytes")
+def test_parse_ocr_rejects_unavailable_languages(mock_convert):
+    import pytesseract
+
+    settings = UnstructuredSettings(strategy="ocr_only", languages=["jpn"])
+
+    with patch.object(pytesseract, "get_languages", return_value=["eng", "osd"]):
+        parser = PDFParser()
+        try:
+            parser.parse(b"%PDF-1.4 test", settings)
+            assert False, "Expected ValueError"
+        except ValueError as exc:
+            assert "jpn" in str(exc)
+            assert "installed" in str(exc)
