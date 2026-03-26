@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import pytest
+
 from src.app.schemas.extract import UnstructuredSettings
 from src.app.services.pdf_parser import PDFParser
 
@@ -83,17 +85,13 @@ def test_parse_auto_falls_back_to_ocr_when_no_text(mock_convert, mock_extract):
     assert result == "OCR fallback"
 
 
-@patch("src.app.services.pdf_parser.convert_from_bytes")
-def test_parse_ocr_rejects_unavailable_languages(mock_convert):
+def test_parse_ocr_rejects_unavailable_languages():
     import pytesseract
 
     settings = UnstructuredSettings(strategy="ocr_only", languages=["jpn"])
 
     with patch.object(pytesseract, "get_languages", return_value=["eng", "osd"]):
         parser = PDFParser()
-        try:
+        with pytest.raises(ValueError, match="jpn") as exc_info:
             parser.parse(b"%PDF-1.4 test", settings)
-            assert False, "Expected ValueError"
-        except ValueError as exc:
-            assert "jpn" in str(exc)
-            assert "installed" in str(exc)
+        assert "installed" in str(exc_info.value)
