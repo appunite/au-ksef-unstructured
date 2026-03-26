@@ -149,7 +149,7 @@ def test_extract_with_custom_unstructured_settings(
     client, auth_header, mock_pdf_parser, mock_llm_extractor
 ):
     schema = json.dumps({"type": "object", "properties": {}})
-    us_settings = json.dumps({"strategy": "hi_res", "languages": ["pol"]})
+    us_settings = json.dumps({"strategy": "ocr_only", "languages": ["pol"]})
 
     response = client.post(
         "/extract",
@@ -161,7 +161,7 @@ def test_extract_with_custom_unstructured_settings(
     assert response.status_code == 200
     call_args = mock_pdf_parser.parse.call_args
     settings = call_args[0][1]
-    assert settings.strategy == "hi_res"
+    assert settings.strategy == "ocr_only"
     assert settings.languages == ["pol"]
 
 

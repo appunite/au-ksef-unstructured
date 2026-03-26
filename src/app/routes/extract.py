@@ -59,7 +59,7 @@ async def extract_invoice(
     unstructured_settings: str | None = Form(
         None,
         description="Optional JSON object to override PDF parsing settings "
-        "(strategy, languages, pdf_infer_table_structure, include_page_breaks).",
+        "(strategy, languages).",
     ),
     model: str | None = Form(
         None,
@@ -112,17 +112,11 @@ async def extract_invoice(
         pdf_settings = UnstructuredSettings(
             strategy=overrides.get("strategy", settings.default_strategy),
             languages=overrides.get("languages", settings.default_languages),
-            pdf_infer_table_structure=overrides.get(
-                "pdf_infer_table_structure",
-                settings.default_pdf_infer_table_structure,
-            ),
-            include_page_breaks=overrides.get("include_page_breaks", False),
         )
     else:
         pdf_settings = UnstructuredSettings(
             strategy=settings.default_strategy,  # type: ignore[arg-type]
             languages=settings.default_languages,
-            pdf_infer_table_structure=settings.default_pdf_infer_table_structure,
         )
 
     resolved_model = model or settings.anthropic_model

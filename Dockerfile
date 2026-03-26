@@ -20,9 +20,7 @@ LABEL org.opencontainers.image.source=https://github.com/appunite/au-ksef-unstru
 RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     tesseract-ocr \
-    libmagic1 \
-    libgl1 \
-    libglib2.0-0 \
+    tesseract-ocr-pol \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
