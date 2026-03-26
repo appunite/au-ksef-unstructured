@@ -1,25 +1,38 @@
-import tempfile
+import io
 
-from unstructured.partition.pdf import partition_pdf
+from pdf2image import convert_from_bytes
+from pdfminer.high_level import extract_text
 
 from src.app.schemas.extract import UnstructuredSettings
 
 
 class PDFParser:
-    """Abstraction over unstructured library for PDF text extraction."""
+    """PDF text extraction using pdfminer (text) and pdf2image + tesseract (OCR)."""
 
     def parse(self, pdf_content: bytes, settings: UnstructuredSettings) -> str:
         """Extract text from PDF bytes. Returns concatenated text content."""
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=True) as tmp:
-            tmp.write(pdf_content)
-            tmp.flush()
+        if settings.strategy == "ocr_only":
+            return self._ocr_extract(pdf_content, settings.languages)
 
-            elements = partition_pdf(
-                filename=tmp.name,
-                strategy=settings.strategy,
-                languages=settings.languages,
-                pdf_infer_table_structure=settings.pdf_infer_table_structure,
-                include_page_breaks=settings.include_page_breaks,
-            )
+        text = self._text_extract(pdf_content)
 
-        return "\n\n".join(str(el) for el in elements)
+        if settings.strategy == "fast" or text.strip():
+            return text
+
+        # strategy == "auto" and pdfminer returned no text — fall back to OCR
+        return self._ocr_extract(pdf_content, settings.languages)
+
+    def _text_extract(self, pdf_content: bytes) -> str:
+        """Extract text using pdfminer (fast, no OCR)."""
+        return extract_text(io.BytesIO(pdf_content))
+
+    def _ocr_extract(self, pdf_content: bytes, languages: list[str]) -> str:
+        """Extract text using pdf2image + tesseract OCR."""
+        import pytesseract
+
+        images = convert_from_bytes(pdf_content)
+        lang = "+".join(languages)
+        pages = []
+        for image in images:
+            pages.append(pytesseract.image_to_string(image, lang=lang))
+        return "\n\n".join(pages)

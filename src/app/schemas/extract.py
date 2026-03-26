@@ -8,25 +8,18 @@ class HealthResponse(BaseModel):
 
 
 class UnstructuredSettings(BaseModel):
-    strategy: Literal["auto", "fast", "ocr_only", "hi_res"] = Field(
-        default="auto",
-        description="PDF partitioning strategy. "
-        "'auto' selects heuristically; 'fast' skips OCR; "
-        "'ocr_only' forces OCR; 'hi_res' uses layout detection.",
-        examples=["auto"],
+    strategy: Literal["auto", "fast", "ocr_only"] = Field(
+        default="fast",
+        description="PDF text extraction strategy. "
+        "'fast' uses pdfminer for direct text extraction (fastest); "
+        "'ocr_only' forces OCR via tesseract; "
+        "'auto' tries pdfminer first, falls back to OCR if no text found.",
+        examples=["fast"],
     )
     languages: list[str] = Field(
         default=["eng"],
         description="Tesseract language codes for OCR",
         examples=[["pol", "eng"]],
-    )
-    pdf_infer_table_structure: bool = Field(
-        default=True,
-        description="Whether to detect and extract table structure from the PDF",
-    )
-    include_page_breaks: bool = Field(
-        default=False,
-        description="Whether to include page-break markers in parsed output",
     )
 
 
