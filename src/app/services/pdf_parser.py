@@ -113,9 +113,10 @@ def _table_to_markdown(rows: list[list]) -> str:
 
     for row in rows[1:]:
         cells = [clean(c) for c in row]
-        # Pad if row has fewer cells than header
+        # Normalize to exactly the same column count as header
         while len(cells) < len(header):
             cells.append("")
+        cells = cells[: len(header)]
         md += "\n| " + " | ".join(cells) + " |"
 
     return md
