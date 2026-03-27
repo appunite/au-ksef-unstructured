@@ -2,7 +2,9 @@ import pymupdf
 
 from src.app.schemas.extract import PdfSettings
 
-# Suppress "Consider using pymupdf_layout" message from find_tables()
+# Suppress "Consider using pymupdf_layout" message printed by find_tables().
+# This warning is hardcoded in pymupdf.table and bypasses both set_messages()
+# and Python logging — monkey-patching the internal callable is the only option.
 pymupdf._warn_layout_once = lambda: None  # type: ignore[attr-defined]
 
 
@@ -104,6 +106,8 @@ def _table_to_markdown(rows: list[list]) -> str:
         return str(cell).replace("\n", " ").strip() if cell else ""
 
     header = [clean(c) for c in rows[0]]
+    if not any(header):
+        return ""
     md = "| " + " | ".join(header) + " |"
     md += "\n| " + " | ".join("---" for _ in header) + " |"
 

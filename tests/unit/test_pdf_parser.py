@@ -6,7 +6,7 @@ from src.app.schemas.extract import PdfSettings
 from src.app.services.pdf_parser import PDFParser
 
 
-def _mock_page(text: str, has_tables: bool = False) -> MagicMock:
+def _mock_page(text: str) -> MagicMock:
     """Create a mock pymupdf Page."""
     page = MagicMock()
 
@@ -173,6 +173,9 @@ def test_parse_auto_skips_ocr_when_text_found(mock_pymupdf: MagicMock) -> None:
     result = parser.parse(b"%PDF-1.4 test", settings)
 
     assert result == "Some text content"
+    # OCR should not have been invoked
+    page = mock_pymupdf.open.return_value[0]
+    page.get_textpage_ocr.assert_not_called()
 
 
 @patch("src.app.services.pdf_parser.pymupdf")

@@ -109,10 +109,13 @@ async def extract_invoice(
             overrides = json.loads(pdf_settings_json)
         except json.JSONDecodeError as e:
             raise HTTPException(status_code=400, detail=f"Invalid pdf_settings JSON: {e}")
-        pdf_settings = PdfSettings(
-            strategy=overrides.get("strategy", settings.default_strategy),
-            languages=overrides.get("languages", settings.default_languages),
-        )
+        try:
+            pdf_settings = PdfSettings(
+                strategy=overrides.get("strategy", settings.default_strategy),
+                languages=overrides.get("languages", settings.default_languages),
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid pdf_settings: {e}")
     else:
         pdf_settings = PdfSettings(
             strategy=settings.default_strategy,
