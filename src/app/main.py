@@ -30,7 +30,7 @@ def create_app() -> FastAPI:
         title="au-ksef-unstructured",
         description=(
             "Microservice that extracts structured invoice data from PDF files. "
-            "PDFs are parsed with `unstructured`, then processed by Anthropic Claude "
+            "PDFs are parsed with PyMuPDF, then processed by Anthropic Claude "
             "to produce KSeF-compatible JSON output."
         ),
         version="0.1.0",

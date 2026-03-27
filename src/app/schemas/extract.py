@@ -7,13 +7,13 @@ class HealthResponse(BaseModel):
     status: str = Field(description="Service health status", examples=["ok"])
 
 
-class UnstructuredSettings(BaseModel):
+class PdfSettings(BaseModel):
     strategy: Literal["auto", "fast", "ocr_only"] = Field(
         default="fast",
         description="PDF text extraction strategy. "
-        "'fast' uses pdfminer for direct text extraction (fastest); "
-        "'ocr_only' forces OCR via tesseract; "
-        "'auto' tries pdfminer first, falls back to OCR if no text found.",
+        "'fast' uses PyMuPDF for direct text extraction (fastest); "
+        "'ocr_only' forces OCR via PyMuPDF + Tesseract; "
+        "'auto' tries text extraction first, falls back to OCR if no text found.",
         examples=["fast"],
     )
     languages: list[str] = Field(

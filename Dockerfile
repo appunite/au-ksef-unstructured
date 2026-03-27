@@ -18,7 +18,6 @@ FROM python:3.11-slim
 LABEL org.opencontainers.image.source=https://github.com/appunite/au-ksef-unstructured
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    poppler-utils \
     tesseract-ocr \
     tesseract-ocr-pol \
     && rm -rf /var/lib/apt/lists/*

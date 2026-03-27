@@ -1,16 +1,14 @@
 [project]
 name = "au-ksef-unstructured"
 version = "0.1.0"
-description = "Extract structured invoice data from PDFs using pdfminer/tesseract + Anthropic Claude"
+description = "Extract structured invoice data from PDFs using PyMuPDF + Anthropic Claude"
 requires-python = ">=3.11.7"
 dependencies = [
     "anthropic>=0.79.0",
     "fastapi>=0.129.0",
     "pydantic-settings>=2.13.0",
     "python-multipart>=0.0.22",
-    "pdfminer.six>=20231228",
-    "pdf2image>=1.16.3",
-    "pytesseract>=0.3.10",
+    "pymupdf>=1.25.0",
     "uvicorn[standard]>=0.41.0",
 ]
 

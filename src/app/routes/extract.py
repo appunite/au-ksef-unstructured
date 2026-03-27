@@ -6,10 +6,10 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from src.app.config import Settings, get_settings
 from src.app.dependencies import verify_token
-from src.app.schemas.extract import ErrorDetail, ExtractionResponse, UnstructuredSettings
+from src.app.schemas.extract import ErrorDetail, ExtractionResponse, PdfSettings
 from src.app.schemas.invoice import InvoiceSchema
 from src.app.services.llm_extractor import LLMExtractor
-from src.app.services.pdf_parser import PDFParser
+from src.app.services.pdf_parser import OcrError, PDFParser
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ _ERROR_RESPONSES: dict[int | str, dict] = {
     "/extract",
     summary="Extract structured data from a PDF invoice",
     description="Upload a PDF invoice and receive structured JSON data. "
-    "The PDF is parsed with `unstructured`, then sent to Anthropic Claude "
+    "The PDF is parsed with PyMuPDF, then sent to Anthropic Claude "
     "for structured extraction. Optionally provide a custom JSON Schema "
     "or override PDF parsing settings.",
     response_model=ExtractionResponse,
@@ -56,10 +56,10 @@ async def extract_invoice(
         description="Optional custom JSON Schema for extraction output. "
         "Must be a JSON object with a 'properties' key.",
     ),
-    unstructured_settings: str | None = Form(
+    pdf_settings_json: str | None = Form(
         None,
         description="Optional JSON object to override PDF parsing settings "
-        "(strategy, languages).",
+        '(strategy: "fast"|"ocr_only"|"auto", languages: list of Tesseract codes).',
     ),
     model: str | None = Form(
         None,
@@ -104,18 +104,21 @@ async def extract_invoice(
                 detail="output_schema must be a JSON Schema object with a 'properties' key",
             )
 
-    if unstructured_settings:
+    if pdf_settings_json:
         try:
-            overrides = json.loads(unstructured_settings)
+            overrides = json.loads(pdf_settings_json)
         except json.JSONDecodeError as e:
-            raise HTTPException(status_code=400, detail=f"Invalid unstructured_settings JSON: {e}")
-        pdf_settings = UnstructuredSettings(
-            strategy=overrides.get("strategy", settings.default_strategy),
-            languages=overrides.get("languages", settings.default_languages),
-        )
+            raise HTTPException(status_code=400, detail=f"Invalid pdf_settings JSON: {e}")
+        try:
+            pdf_settings = PdfSettings(
+                strategy=overrides.get("strategy", settings.default_strategy),
+                languages=overrides.get("languages", settings.default_languages),
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid pdf_settings: {e}")
     else:
-        pdf_settings = UnstructuredSettings(
-            strategy=settings.default_strategy,  # type: ignore[arg-type]
+        pdf_settings = PdfSettings(
+            strategy=settings.default_strategy,
             languages=settings.default_languages,
         )
 
@@ -134,7 +137,10 @@ async def extract_invoice(
     try:
         t0 = time.monotonic()
         parser = PDFParser()
-        text = parser.parse(pdf_content, pdf_settings)
+        try:
+            text = parser.parse(pdf_content, pdf_settings)
+        except OcrError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         t1 = time.monotonic()
         logger.info("PDF parsed: %d chars in %.1fs", len(text), t1 - t0)
         logger.debug("Extracted text:\n%s", text[:2000])
