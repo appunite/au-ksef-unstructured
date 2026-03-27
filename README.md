@@ -1,11 +1,11 @@
 # au-ksef-unstructured
 
-Extract structured invoice data from PDF files using `unstructured` for text extraction and Anthropic Claude for structured data extraction.
+Extract structured invoice data from PDF files using PyMuPDF for text extraction and Anthropic Claude for structured data extraction.
 
 ## Architecture
 
 ```
-PDF file ──► unstructured (text extraction) ──► Anthropic Claude (structured output) ──► JSON
+PDF file ──► PyMuPDF (text extraction) ──► Anthropic Claude (structured output) ──► JSON
 ```
 
 The service accepts a **PDF file** containing an invoice and returns structured JSON using Anthropic's Structured Output feature.
@@ -18,7 +18,6 @@ By default it extracts Polish KSeF invoice fields (invoice number, NIP, dates, a
 
 - Python 3.11.7
 - [uv](https://docs.astral.sh/uv/) package manager
-- System dependencies for PDF processing: `poppler-utils`, `tesseract-ocr`, `libmagic`
 
 ### Install
 
@@ -40,9 +39,8 @@ Required environment variables:
 Optional:
 - `ANTHROPIC_MODEL` — Default model (default: `claude-sonnet-4-5-20250929`)
 - `LOG_LEVEL` — Logging level (default: `INFO`)
-- `DEFAULT_STRATEGY` — Unstructured parsing strategy (default: `auto`)
+- `DEFAULT_STRATEGY` — PDF parsing strategy: `fast`, `ocr_only`, or `auto` (default: `fast`)
 - `DEFAULT_LANGUAGES` — OCR languages as JSON array (default: `["eng", "pol"]`)
-- `DEFAULT_PDF_INFER_TABLE_STRUCTURE` — Infer tables (default: `true`)
 - `MAX_UPLOAD_SIZE_MB` — Maximum PDF upload size (default: `10`)
 - `ANTHROPIC_TIMEOUT` — API request timeout in seconds (default: `120`)
 
@@ -66,8 +64,9 @@ Extract structured data from a PDF invoice.
 **Form fields:**
 - `file` — PDF file (required)
 - `output_schema` — JSON Schema string describing desired output (optional; uses built-in KSeF invoice schema when omitted)
-- `unstructured_settings` — JSON string with unstructured overrides (optional)
+- `pdf_settings_json` — JSON string with PDF parsing overrides: `strategy`, `languages` (optional)
 - `model` — Anthropic model override (optional)
+- `context` — Free-text context to improve extraction accuracy (optional)
 
 **Default extraction** (Polish KSeF invoice fields):
 

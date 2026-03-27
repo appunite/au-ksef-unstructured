@@ -128,13 +128,13 @@ def test_extract_rejects_invalid_schema_json(client, auth_header):
     assert "output_schema" in body["error"]["message"]
 
 
-def test_extract_rejects_invalid_unstructured_settings(client, auth_header):
+def test_extract_rejects_invalid_pdf_settings(client, auth_header):
     schema = json.dumps({"type": "object", "properties": {}})
 
     response = client.post(
         "/extract",
         headers=auth_header,
-        data={"output_schema": schema, "unstructured_settings": "bad json{"},
+        data={"output_schema": schema, "pdf_settings_json": "bad json{"},
         files={"file": ("invoice.pdf", io.BytesIO(b"%PDF-1.4 test"), "application/pdf")},
     )
 
@@ -142,10 +142,10 @@ def test_extract_rejects_invalid_unstructured_settings(client, auth_header):
     body = response.json()
     assert body["success"] is False
     assert body["error"]["code"] == "validation_error"
-    assert "unstructured_settings" in body["error"]["message"]
+    assert "pdf_settings" in body["error"]["message"]
 
 
-def test_extract_with_custom_unstructured_settings(
+def test_extract_with_custom_pdf_settings(
     client, auth_header, mock_pdf_parser, mock_llm_extractor
 ):
     schema = json.dumps({"type": "object", "properties": {}})
@@ -154,7 +154,7 @@ def test_extract_with_custom_unstructured_settings(
     response = client.post(
         "/extract",
         headers=auth_header,
-        data={"output_schema": schema, "unstructured_settings": us_settings},
+        data={"output_schema": schema, "pdf_settings_json": us_settings},
         files={"file": ("invoice.pdf", io.BytesIO(b"%PDF-1.4 test"), "application/pdf")},
     )
 

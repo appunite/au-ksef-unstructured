@@ -3,12 +3,12 @@
 ## Project Overview
 
 Python microservice: PDF invoice → structured JSON extraction.
-Pipeline: PDF → unstructured (text) → Anthropic Claude (structured output) → JSON.
+Pipeline: PDF → PyMuPDF (text) → Anthropic Claude (structured output) → JSON.
 
 ## Tech Stack
 
 - **Framework:** FastAPI
-- **PDF parsing:** unstructured[pdf]
+- **PDF parsing:** PyMuPDF
 - **LLM:** Anthropic Claude via `anthropic` SDK (Structured Output with `output_config`)
 - **Config:** pydantic-settings
 - **Package manager:** uv
@@ -25,7 +25,7 @@ Pipeline: PDF → unstructured (text) → Anthropic Claude (structured output) �
 
 ## Project Structure
 
-- `src/app/main.py` — FastAPI app creation & lifespan
+- `src/app/main.py` — FastAPI app creation & exception handlers
 - `src/app/config.py` — Settings via pydantic-settings
 - `src/app/dependencies.py` — Auth dependency (bearer token)
 - `src/app/routes/` — API route handlers
