@@ -103,7 +103,7 @@ def _table_to_markdown(rows: list[list]) -> str:
         return ""
 
     def clean(cell: object) -> str:
-        return str(cell).replace("\n", " ").strip() if cell else ""
+        return str(cell).replace("\n", " ").replace("|", "\\|").strip() if cell else ""
 
     header = [clean(c) for c in rows[0]]
     if not any(header):
