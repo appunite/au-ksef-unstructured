@@ -5,7 +5,13 @@ from src.app.schemas.extract import PdfSettings
 # Suppress "Consider using pymupdf_layout" message printed by find_tables().
 # This warning is hardcoded in pymupdf.table and bypasses both set_messages()
 # and Python logging — monkey-patching the internal callable is the only option.
-pymupdf._warn_layout_once = lambda: None  # type: ignore[attr-defined]
+# Validated against pymupdf 1.27.x; check if still needed after upgrades.
+if hasattr(pymupdf, "_warn_layout_once"):
+    pymupdf._warn_layout_once = lambda: None  # type: ignore[attr-defined]
+
+
+class OcrError(Exception):
+    """Raised when OCR fails (e.g. missing Tesseract language packs)."""
 
 
 class PDFParser:
@@ -78,7 +84,7 @@ class PDFParser:
             try:
                 tp = page.get_textpage_ocr(language=lang, full=True)
             except RuntimeError as e:
-                raise ValueError(
+                raise OcrError(
                     f"OCR failed for language '{lang}'. "
                     f"Ensure the required tesseract language packs are installed: {e}"
                 ) from e

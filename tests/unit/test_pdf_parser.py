@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.app.schemas.extract import PdfSettings
-from src.app.services.pdf_parser import PDFParser
+from src.app.services.pdf_parser import OcrError, PDFParser
 
 
 def _mock_page(text: str) -> MagicMock:
@@ -188,7 +188,7 @@ def test_parse_ocr_raises_on_missing_language(mock_pymupdf: MagicMock) -> None:
     settings = PdfSettings(strategy="ocr_only", languages=["jpn"])
 
     parser = PDFParser()
-    with pytest.raises(ValueError, match="OCR failed"):
+    with pytest.raises(OcrError, match="OCR failed"):
         parser.parse(b"%PDF-1.4 test", settings)
 
 

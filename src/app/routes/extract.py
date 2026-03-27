@@ -9,7 +9,7 @@ from src.app.dependencies import verify_token
 from src.app.schemas.extract import ErrorDetail, ExtractionResponse, PdfSettings
 from src.app.schemas.invoice import InvoiceSchema
 from src.app.services.llm_extractor import LLMExtractor
-from src.app.services.pdf_parser import PDFParser
+from src.app.services.pdf_parser import OcrError, PDFParser
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +137,10 @@ async def extract_invoice(
     try:
         t0 = time.monotonic()
         parser = PDFParser()
-        text = parser.parse(pdf_content, pdf_settings)
+        try:
+            text = parser.parse(pdf_content, pdf_settings)
+        except OcrError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         t1 = time.monotonic()
         logger.info("PDF parsed: %d chars in %.1fs", len(text), t1 - t0)
         logger.debug("Extracted text:\n%s", text[:2000])
