@@ -76,7 +76,7 @@ curl -X POST http://localhost:8000/extract \
   -F "file=@invoice.pdf"
 ```
 
-**Custom schema** (all fields must be `required`; use `anyOf` with `null` for nullable fields):
+**Custom schema:**
 
 ```bash
 curl -X POST http://localhost:8000/extract \
@@ -90,7 +90,7 @@ curl -X POST http://localhost:8000/extract \
         "description": "Unique invoice identifier (e.g. INV-2025-001)"
       },
       "total_amount": {
-        "anyOf": [{"type": "number"}, {"type": "null"}],
+        "type": "number",
         "description": "Total invoice amount including tax"
       },
       "vendor_name": {
@@ -98,8 +98,7 @@ curl -X POST http://localhost:8000/extract \
         "description": "Name of the company that issued the invoice"
       }
     },
-    "required": ["invoice_number", "total_amount", "vendor_name"],
-    "additionalProperties": false
+    "required": ["invoice_number", "total_amount", "vendor_name"]
   }'
 ```
 
@@ -115,6 +114,26 @@ curl -X POST http://localhost:8000/extract \
   }
 }
 ```
+
+#### Custom schema constraints
+
+The `output_schema` is compiled into a structured output grammar by the Anthropic SDK. This imposes constraints:
+
+**Make all fields required.** For missing values, the LLM returns empty string (`""`) for text and `0` for numbers. Do not use nullable/optional fields.
+
+**Do not use union types.** `"type": ["string", "null"]` causes an SDK assertion error. `"anyOf"` works but counts against complexity limits.
+
+**Keep schemas flat.** Nested objects with multiple fields compound grammar complexity. Use flat keys like `seller_address_street` instead of `seller_address.street`.
+
+**Complexity limits** (hard, non-configurable):
+
+| Limit | Value |
+|---|---|
+| Optional parameters | 24 total |
+| Union type parameters (`anyOf`, type arrays) | 16 total |
+| Compilation timeout | 180 seconds |
+
+Each optional parameter roughly doubles grammar state space. Schemas with >18 optional params will likely timeout.
 
 #### `GET /health`
 

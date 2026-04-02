@@ -56,7 +56,7 @@ class LLMExtractor:
         resolved_model = model or self.default_model
         prompt = EXTRACTION_PROMPT.format(
             document_text=text,
-            context=f"\n{context}\n" if context else "",
+            context=context if context else "none",
         )
 
         logger.info(
@@ -110,7 +110,7 @@ class LLMExtractor:
         resolved_model = model or self.default_model
         prompt = EXTRACTION_PROMPT.format(
             document_text=text,
-            context=f"\n{context}\n" if context else "",
+            context=context if context else "none",
         )
         transformed = transform_schema(output_schema)
 

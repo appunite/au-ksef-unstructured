@@ -127,8 +127,8 @@ def test_extract_with_model_no_context_leaves_clean_prompt(mock_anthropic_cls):
 
     call_kwargs = mock_client.messages.parse.call_args.kwargs
     user_message = call_kwargs["messages"][0]["content"]
-    # No extra blank lines between rules and document text
-    assert "not clearly stated.\n\nDocument text:" in user_message
+    assert "Additional context:\nnone" in user_message
+    assert "Document text:" in user_message
 
 
 # --- extract_with_schema tests ---
@@ -250,4 +250,5 @@ def test_extract_with_schema_no_context_leaves_clean_prompt(mock_anthropic_cls):
 
     call_kwargs = mock_client.messages.create.call_args.kwargs
     user_message = call_kwargs["messages"][0]["content"]
-    assert "not clearly stated.\n\nDocument text:" in user_message
+    assert "Additional context:\nnone" in user_message
+    assert "Document text:" in user_message
