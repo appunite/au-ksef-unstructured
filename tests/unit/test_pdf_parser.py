@@ -45,10 +45,12 @@ def test_parse_returns_text(mock_pymupdf: MagicMock) -> None:
 
 @patch("src.app.services.pdf_parser.pymupdf")
 def test_parse_joins_multiple_pages(mock_pymupdf: MagicMock) -> None:
-    mock_pymupdf.open.return_value = _mock_doc([
-        _mock_page("Page 1"),
-        _mock_page("Page 2"),
-    ])
+    mock_pymupdf.open.return_value = _mock_doc(
+        [
+            _mock_page("Page 1"),
+            _mock_page("Page 2"),
+        ]
+    )
 
     parser = PDFParser()
     result = parser.parse(b"%PDF-1.4 test", PdfSettings())
@@ -200,8 +202,5 @@ class pymupdf_rect_stub:
 
     def intersects(self, other):
         return not (
-            self.x1 <= other.x0
-            or other.x1 <= self.x0
-            or self.y1 <= other.y0
-            or other.y1 <= self.y0
+            self.x1 <= other.x0 or other.x1 <= self.x0 or self.y1 <= other.y0 or other.y1 <= self.y0
         )

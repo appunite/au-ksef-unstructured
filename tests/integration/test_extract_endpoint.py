@@ -145,9 +145,7 @@ def test_extract_rejects_invalid_pdf_settings(client, auth_header):
     assert "pdf_settings" in body["error"]["message"]
 
 
-def test_extract_with_custom_pdf_settings(
-    client, auth_header, mock_pdf_parser, mock_llm_extractor
-):
+def test_extract_with_custom_pdf_settings(client, auth_header, mock_pdf_parser, mock_llm_extractor):
     schema = json.dumps({"type": "object", "properties": {}})
     us_settings = json.dumps({"strategy": "ocr_only", "languages": ["pol"]})
 
