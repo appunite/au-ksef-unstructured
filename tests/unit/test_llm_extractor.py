@@ -106,9 +106,7 @@ def test_extract_with_model_includes_context_in_prompt(mock_anthropic_cls):
     mock_client.messages.parse.return_value = mock_response
 
     extractor = LLMExtractor(api_key="sk-test", model="claude-sonnet-4-5-20250929")
-    extractor.extract_with_model(
-        "Invoice text", _TestModel, context="This is a Polish VAT invoice"
-    )
+    extractor.extract_with_model("Invoice text", _TestModel, context="This is a Polish VAT invoice")
 
     call_kwargs = mock_client.messages.parse.call_args.kwargs
     user_message = call_kwargs["messages"][0]["content"]
@@ -248,9 +246,7 @@ def test_extract_with_schema_no_context_leaves_clean_prompt(mock_anthropic_cls):
     mock_client.messages.create.return_value = mock_response
 
     extractor = LLMExtractor(api_key="sk-test", model="claude-sonnet-4-5-20250929")
-    extractor.extract_with_schema(
-        "Invoice text", {"type": "object", "properties": {}}
-    )
+    extractor.extract_with_schema("Invoice text", {"type": "object", "properties": {}})
 
     call_kwargs = mock_client.messages.create.call_args.kwargs
     user_message = call_kwargs["messages"][0]["content"]

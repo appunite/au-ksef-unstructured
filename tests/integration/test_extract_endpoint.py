@@ -1,5 +1,6 @@
 import io
 import json
+from typing import Any
 
 
 def test_extract_full_pipeline(client, auth_header, mock_pdf_parser, mock_llm_extractor):
@@ -146,8 +147,8 @@ def test_extract_rejects_invalid_pdf_settings(client, auth_header):
 
 
 def test_extract_with_custom_pdf_settings(
-    client, auth_header, mock_pdf_parser, mock_llm_extractor
-):
+    client: Any, auth_header: dict[str, str], mock_pdf_parser: Any, mock_llm_extractor: Any
+) -> None:
     schema = json.dumps({"type": "object", "properties": {}})
     us_settings = json.dumps({"strategy": "ocr_only", "languages": ["pol"]})
 

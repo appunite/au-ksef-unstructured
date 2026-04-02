@@ -10,7 +10,7 @@ PDF file ──► PyMuPDF (text extraction) ──► Anthropic Claude (structu
 
 The service accepts a **PDF file** containing an invoice and returns structured JSON using Anthropic's Structured Output feature.
 
-By default it extracts Polish KSeF invoice fields (invoice number, NIP, dates, amounts, line items, etc.). You can also provide a custom **JSON Schema** to extract any fields you need.
+By default it extracts Polish KSeF invoice fields (invoice number, NIP, dates, amounts, bank details, line items, etc.). You can also provide a custom **JSON Schema** to extract any fields you need.
 
 ## Setup
 

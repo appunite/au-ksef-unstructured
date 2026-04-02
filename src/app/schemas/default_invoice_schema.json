@@ -23,23 +23,100 @@
     },
     "seller_nip": {
       "type": "string",
-      "description": "Seller's 10-digit Polish tax identification number (NIP, digits only)"
+      "description": "Seller's tax ID. EU VAT number with country prefix (e.g. PL7831812212, DE123456789) or US EIN/TIN"
     },
     "seller_name": {
       "type": "string",
       "description": "Full name of the selling company or person"
     },
+    "seller_address": {
+      "type": ["object", "null"],
+      "description": "Seller's address",
+      "properties": {
+        "street": {
+          "type": ["string", "null"],
+          "description": "Street name and building/apartment number"
+        },
+        "city": {
+          "type": ["string", "null"],
+          "description": "City or town name"
+        },
+        "postal_code": {
+          "type": ["string", "null"],
+          "description": "Postal or ZIP code"
+        },
+        "country": {
+          "type": ["string", "null"],
+          "description": "Country name or ISO 3166-1 alpha-2 code (e.g. PL, US, DE)"
+        }
+      },
+      "additionalProperties": false
+    },
     "buyer_nip": {
       "type": ["string", "null"],
-      "description": "Buyer's 10-digit Polish tax identification number (NIP, digits only)"
+      "description": "Buyer's tax ID. EU VAT number with country prefix (e.g. PL7831812212, DE123456789) or US EIN/TIN"
     },
     "buyer_name": {
       "type": ["string", "null"],
       "description": "Full name of the buying company or person"
     },
-    "iban": {
-      "type": ["string", "null"],
-      "description": "Seller's bank account number in IBAN format (FA(3) field NrRachunkuBankowego)"
+    "buyer_address": {
+      "type": ["object", "null"],
+      "description": "Buyer's address",
+      "properties": {
+        "street": {
+          "type": ["string", "null"],
+          "description": "Street name and building/apartment number"
+        },
+        "city": {
+          "type": ["string", "null"],
+          "description": "City or town name"
+        },
+        "postal_code": {
+          "type": ["string", "null"],
+          "description": "Postal or ZIP code"
+        },
+        "country": {
+          "type": ["string", "null"],
+          "description": "Country name or ISO 3166-1 alpha-2 code (e.g. PL, US, DE)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bank_details": {
+      "type": ["object", "null"],
+      "description": "Seller's bank and payment details",
+      "properties": {
+        "iban": {
+          "type": ["string", "null"],
+          "description": "IBAN (EU) or full account number (FA(3) field NrRachunkuBankowego)"
+        },
+        "swift_bic": {
+          "type": ["string", "null"],
+          "description": "SWIFT/BIC code (e.g. BPKOPLPW, CITIUS33)"
+        },
+        "bank_name": {
+          "type": ["string", "null"],
+          "description": "Name of the bank"
+        },
+        "bank_address": {
+          "type": ["string", "null"],
+          "description": "Bank branch address as printed on the invoice"
+        },
+        "routing_number": {
+          "type": ["string", "null"],
+          "description": "ABA routing number for US domestic wires (9 digits)"
+        },
+        "account_number": {
+          "type": ["string", "null"],
+          "description": "Bank account number for US wires (when separate from IBAN)"
+        },
+        "notes": {
+          "type": ["string", "null"],
+          "description": "Explicit payment instructions printed on the invoice"
+        }
+      },
+      "additionalProperties": false
     },
     "net_amount": {
       "type": ["number", "null"],
@@ -97,6 +174,6 @@
       }
     }
   },
-  "required": ["invoice_number", "issue_date", "seller_nip", "seller_name"],
+  "required": ["invoice_number", "issue_date", "seller_nip", "seller_name", "currency", "line_items"],
   "additionalProperties": false
 }
