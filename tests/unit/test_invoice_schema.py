@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 from src.app.schemas.invoice import Address, BankInfo, InvoiceLineItem, InvoiceSchema
 
 
@@ -167,3 +170,19 @@ class TestInvoiceSchema:
         assert invoice.bank_details.iban == "PL61109010140000071219812874"
         assert invoice.bank_details.routing_number == "021000089"
         assert invoice.bank_details.swift_bic is None
+
+
+def test_default_schema_json_matches_pydantic_model() -> None:
+    """Ensure default_invoice_schema.json stays in sync with InvoiceSchema.
+
+    If this fails, run: uv run python -m scripts.generate_schema
+    """
+    from scripts.generate_schema import generate
+
+    schema_path = Path("src/app/schemas/default_invoice_schema.json")
+    on_disk = json.loads(schema_path.read_text())
+    expected = generate()
+    assert on_disk == expected, (
+        "default_invoice_schema.json is out of sync with InvoiceSchema. "
+        "Run: uv run python -m scripts.generate_schema"
+    )

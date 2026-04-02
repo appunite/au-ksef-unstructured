@@ -133,6 +133,16 @@ make format      # Format code
 make typecheck   # Type checking
 ```
 
+### Updating the default schema
+
+The file `src/app/schemas/default_invoice_schema.json` is auto-generated from the Pydantic `InvoiceSchema` model. After modifying `src/app/schemas/invoice.py`, regenerate it:
+
+```bash
+uv run python -m scripts.generate_schema
+```
+
+A test (`test_default_schema_json_matches_pydantic_model`) will fail if the JSON file is out of sync.
+
 ## Docker
 
 ```bash
