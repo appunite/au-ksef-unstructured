@@ -2,7 +2,7 @@ from src.app.schemas.invoice import Address, BankInfo, InvoiceLineItem, InvoiceS
 
 
 class TestBankInfo:
-    def test_all_fields_populated(self):
+    def test_all_fields_populated(self) -> None:
         info = BankInfo(
             iban="PL61109010140000071219812874",
             swift_bic="WBKPPLPP",
@@ -18,7 +18,7 @@ class TestBankInfo:
         assert data["bank_name"] == "Santander Bank Polska S.A."
         assert data["bank_address"] == "ul. Grunwaldzka 182, Poznan"
 
-    def test_all_none_is_valid(self):
+    def test_all_none_is_valid(self) -> None:
         info = BankInfo(
             iban=None,
             swift_bic=None,
@@ -30,7 +30,7 @@ class TestBankInfo:
         )
         assert all(v is None for v in info.model_dump().values())
 
-    def test_us_wire_fields(self):
+    def test_us_wire_fields(self) -> None:
         info = BankInfo(
             iban=None,
             swift_bic="CITIUS33",
@@ -46,7 +46,7 @@ class TestBankInfo:
         assert data["swift_bic"] == "CITIUS33"
         assert data["notes"] == "Reference: INV-2025-042"
 
-    def test_round_trip_json(self):
+    def test_round_trip_json(self) -> None:
         info = BankInfo(
             iban="DE89370400440532013000",
             swift_bic="COBADEFFXXX",
@@ -61,7 +61,7 @@ class TestBankInfo:
 
 
 class TestAddress:
-    def test_full_address(self):
+    def test_full_address(self) -> None:
         addr = Address(
             street="ul. Grunwaldzka 12/3",
             city="Poznan",
@@ -75,13 +75,13 @@ class TestAddress:
             "country": "PL",
         }
 
-    def test_all_none_is_valid(self):
+    def test_all_none_is_valid(self) -> None:
         addr = Address(street=None, city=None, postal_code=None, country=None)
         assert all(v is None for v in addr.model_dump().values())
 
 
 class TestInvoiceSchema:
-    def test_bank_details_nested(self):
+    def test_bank_details_nested(self) -> None:
         invoice = InvoiceSchema(
             ksef_number=None,
             invoice_number="FV/2025/01/001",
@@ -123,7 +123,7 @@ class TestInvoiceSchema:
         assert data["bank_details"]["iban"] == "PL61109010140000071219812874"
         assert data["bank_details"]["swift_bic"] == "WBKPPLPP"
 
-    def test_bank_details_null_is_valid(self):
+    def test_bank_details_null_is_valid(self) -> None:
         invoice = InvoiceSchema(
             ksef_number=None,
             invoice_number="FV/2025/01/001",
@@ -145,7 +145,7 @@ class TestInvoiceSchema:
         )
         assert invoice.bank_details is None
 
-    def test_bank_details_from_dict(self):
+    def test_bank_details_from_dict(self) -> None:
         """Simulates what the LLM returns — raw dict, not BankInfo instance."""
         invoice = InvoiceSchema.model_validate(
             {

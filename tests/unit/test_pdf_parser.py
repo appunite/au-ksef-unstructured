@@ -197,10 +197,10 @@ def test_parse_ocr_raises_on_missing_language(mock_pymupdf: MagicMock) -> None:
 class pymupdf_rect_stub:
     """Stub for pymupdf.Rect that supports intersects()."""
 
-    def __init__(self, bbox):
+    def __init__(self, bbox: tuple[float, float, float, float]) -> None:
         self.x0, self.y0, self.x1, self.y1 = bbox
 
-    def intersects(self, other):
+    def intersects(self, other: "pymupdf_rect_stub") -> bool:
         return not (
             self.x1 <= other.x0 or other.x1 <= self.x0 or self.y1 <= other.y0 or other.y1 <= self.y0
         )
