@@ -1,175 +1,208 @@
 import json
 from pathlib import Path
 
-from src.app.schemas.invoice import Address, BankInfo, InvoiceLineItem, InvoiceSchema
+from src.app.schemas.invoice import InvoiceLineItem, InvoiceSchema
 
 
-class TestBankInfo:
-    def test_all_fields_populated(self) -> None:
-        info = BankInfo(
-            iban="PL61109010140000071219812874",
-            swift_bic="WBKPPLPP",
-            bank_name="Santander Bank Polska S.A.",
-            bank_address="ul. Grunwaldzka 182, Poznan",
-            routing_number=None,
-            account_number=None,
-            notes=None,
+class TestInvoiceLineItem:
+    def test_all_fields_required(self) -> None:
+        item = InvoiceLineItem(
+            line_number=1,
+            description="Monitor Dell P2720DC",
+            unit="szt.",
+            quantity=1.0,
+            unit_price=120.0,
+            net_amount=120.0,
+            vat_rate=23.0,
         )
-        data = info.model_dump()
-        assert data["iban"] == "PL61109010140000071219812874"
-        assert data["swift_bic"] == "WBKPPLPP"
-        assert data["bank_name"] == "Santander Bank Polska S.A."
-        assert data["bank_address"] == "ul. Grunwaldzka 182, Poznan"
+        data = item.model_dump()
+        assert data["line_number"] == 1
+        assert data["description"] == "Monitor Dell P2720DC"
+        assert data["unit"] == "szt."
+        assert data["vat_rate"] == 23.0
 
-    def test_all_none_is_valid(self) -> None:
-        info = BankInfo(
-            iban=None,
-            swift_bic=None,
-            bank_name=None,
-            bank_address=None,
-            routing_number=None,
-            account_number=None,
-            notes=None,
+    def test_missing_values_use_defaults(self) -> None:
+        """When LLM can't find a value, it returns empty string / 0."""
+        item = InvoiceLineItem(
+            line_number=1,
+            description="Service",
+            unit="",
+            quantity=0,
+            unit_price=0,
+            net_amount=0,
+            vat_rate=0,
         )
-        assert all(v is None for v in info.model_dump().values())
-
-    def test_us_wire_fields(self) -> None:
-        info = BankInfo(
-            iban=None,
-            swift_bic="CITIUS33",
-            bank_name="Citibank N.A.",
-            bank_address=None,
-            routing_number="021000089",
-            account_number="12345678",
-            notes="Reference: INV-2025-042",
-        )
-        data = info.model_dump()
-        assert data["routing_number"] == "021000089"
-        assert data["account_number"] == "12345678"
-        assert data["swift_bic"] == "CITIUS33"
-        assert data["notes"] == "Reference: INV-2025-042"
-
-    def test_round_trip_json(self) -> None:
-        info = BankInfo(
-            iban="DE89370400440532013000",
-            swift_bic="COBADEFFXXX",
-            bank_name=None,
-            bank_address=None,
-            routing_number=None,
-            account_number=None,
-            notes=None,
-        )
-        rebuilt = BankInfo.model_validate_json(info.model_dump_json())
-        assert rebuilt == info
-
-
-class TestAddress:
-    def test_full_address(self) -> None:
-        addr = Address(
-            street="ul. Grunwaldzka 12/3",
-            city="Poznan",
-            postal_code="60-311",
-            country="PL",
-        )
-        assert addr.model_dump() == {
-            "street": "ul. Grunwaldzka 12/3",
-            "city": "Poznan",
-            "postal_code": "60-311",
-            "country": "PL",
-        }
-
-    def test_all_none_is_valid(self) -> None:
-        addr = Address(street=None, city=None, postal_code=None, country=None)
-        assert all(v is None for v in addr.model_dump().values())
+        data = item.model_dump()
+        assert data["unit"] == ""
+        assert data["quantity"] == 0
+        assert data["vat_rate"] == 0
 
 
 class TestInvoiceSchema:
-    def test_bank_details_nested(self) -> None:
+    def test_flat_structure(self) -> None:
+        """All address and bank fields are flat, no nesting."""
         invoice = InvoiceSchema(
-            ksef_number=None,
+            ksef_number="",
             invoice_number="FV/2025/01/001",
             issue_date="2025-01-15",
-            sales_date=None,
-            due_date=None,
+            sales_date="2025-01-15",
+            due_date="2025-02-14",
             seller_nip="5261040828",
             seller_name="AppUnite S.A.",
-            seller_address=None,
-            buyer_nip=None,
-            buyer_name=None,
-            buyer_address=None,
-            bank_details=BankInfo(
-                iban="PL61109010140000071219812874",
-                swift_bic="WBKPPLPP",
-                bank_name=None,
-                bank_address=None,
-                routing_number=None,
-                account_number=None,
-                notes=None,
-            ),
-            net_amount=100.0,
-            vat_amount=23.0,
-            gross_amount=123.0,
+            seller_address_street="ul. Grunwaldzka 12",
+            seller_address_city="Poznan",
+            seller_address_postal_code="60-311",
+            seller_address_country="PL",
+            buyer_nip="7811903576",
+            buyer_name="Klient Testowy Sp. z o.o.",
+            buyer_address_street="ul. Marszalkowska 1/5",
+            buyer_address_city="Warszawa",
+            buyer_address_postal_code="00-001",
+            buyer_address_country="PL",
+            bank_iban="PL61109010140000071219812874",
+            bank_swift_bic="WBKPPLPP",
+            bank_name="Santander Bank Polska S.A.",
+            bank_routing_number="",
+            bank_account_number="",
+            bank_address="",
+            bank_notes="",
+            net_amount=30000.0,
+            vat_amount=6900.0,
+            gross_amount=36900.0,
             currency="PLN",
             line_items=[
                 InvoiceLineItem(
                     line_number=1,
-                    description="Service",
-                    unit=None,
-                    quantity=1.0,
-                    unit_price=100.0,
-                    net_amount=100.0,
-                    vat_rate=23.0,
+                    description="Uslugi doradcze IT",
+                    unit="godz.",
+                    quantity=120.0,
+                    unit_price=250.0,
+                    net_amount=30000.0,
+                    vat_rate=23,
                 )
             ],
         )
         data = invoice.model_dump()
-        assert data["bank_details"]["iban"] == "PL61109010140000071219812874"
-        assert data["bank_details"]["swift_bic"] == "WBKPPLPP"
+        assert data["seller_address_street"] == "ul. Grunwaldzka 12"
+        assert data["bank_iban"] == "PL61109010140000071219812874"
+        assert data["bank_routing_number"] == ""
 
-    def test_bank_details_null_is_valid(self) -> None:
+    def test_missing_values_use_empty_defaults(self) -> None:
+        """Fields not found on invoice get empty string / 0."""
         invoice = InvoiceSchema(
-            ksef_number=None,
-            invoice_number="FV/2025/01/001",
+            ksef_number="",
+            invoice_number="INV-001",
             issue_date="2025-01-15",
-            sales_date=None,
-            due_date=None,
+            sales_date="",
+            due_date="",
             seller_nip="5261040828",
-            seller_name="AppUnite S.A.",
-            seller_address=None,
-            buyer_nip=None,
-            buyer_name=None,
-            buyer_address=None,
-            bank_details=None,
-            net_amount=None,
-            vat_amount=None,
-            gross_amount=None,
+            seller_name="Acme Corp",
+            seller_address_street="",
+            seller_address_city="",
+            seller_address_postal_code="",
+            seller_address_country="",
+            buyer_nip="",
+            buyer_name="",
+            buyer_address_street="",
+            buyer_address_city="",
+            buyer_address_postal_code="",
+            buyer_address_country="",
+            bank_iban="",
+            bank_swift_bic="",
+            bank_name="",
+            bank_routing_number="",
+            bank_account_number="",
+            bank_address="",
+            bank_notes="",
+            net_amount=0,
+            vat_amount=0,
+            gross_amount=0,
             currency="PLN",
             line_items=[],
         )
-        assert invoice.bank_details is None
+        assert invoice.buyer_name == ""
+        assert invoice.net_amount == 0
 
-    def test_bank_details_from_dict(self) -> None:
-        """Simulates what the LLM returns — raw dict, not BankInfo instance."""
+    def test_from_dict(self) -> None:
+        """Simulates what the LLM returns — raw dict."""
         invoice = InvoiceSchema.model_validate(
             {
-                "ksef_number": None,
+                "ksef_number": "",
                 "invoice_number": "INV-001",
                 "issue_date": "2025-01-15",
+                "sales_date": "",
+                "due_date": "",
                 "seller_nip": "5261040828",
                 "seller_name": "Acme Corp",
-                "bank_details": {
-                    "iban": "PL61109010140000071219812874",
-                    "routing_number": "021000089",
-                },
-                "currency": "PLN",
-                "line_items": [],
+                "seller_address_street": "123 Main St",
+                "seller_address_city": "New York",
+                "seller_address_postal_code": "10001",
+                "seller_address_country": "US",
+                "buyer_nip": "",
+                "buyer_name": "Client Inc.",
+                "buyer_address_street": "",
+                "buyer_address_city": "",
+                "buyer_address_postal_code": "",
+                "buyer_address_country": "",
+                "bank_iban": "",
+                "bank_swift_bic": "CITIUS33",
+                "bank_name": "Citibank N.A.",
+                "bank_routing_number": "021000089",
+                "bank_account_number": "12345678",
+                "bank_address": "388 Greenwich St, New York",
+                "bank_notes": "Reference: INV-2025-042",
+                "net_amount": 1000.0,
+                "vat_amount": 0,
+                "gross_amount": 1000.0,
+                "currency": "USD",
+                "line_items": [
+                    {
+                        "line_number": 1,
+                        "description": "Consulting",
+                        "unit": "hrs",
+                        "quantity": 10,
+                        "unit_price": 100,
+                        "net_amount": 1000,
+                        "vat_rate": 0,
+                    }
+                ],
             }
         )
-        assert invoice.bank_details is not None
-        assert isinstance(invoice.bank_details, BankInfo)
-        assert invoice.bank_details.iban == "PL61109010140000071219812874"
-        assert invoice.bank_details.routing_number == "021000089"
-        assert invoice.bank_details.swift_bic is None
+        assert invoice.seller_address_city == "New York"
+        assert invoice.bank_routing_number == "021000089"
+
+    def test_no_optional_fields_in_schema(self) -> None:
+        """All fields must be required — no optionals that bloat structured output."""
+        schema = InvoiceSchema.model_json_schema()
+        properties = set(schema["properties"].keys())
+        required = set(schema["required"])
+        assert properties == required, (
+            f"Optional fields found: {properties - required}. "
+            "All fields must be required for structured output compatibility."
+        )
+
+    def test_no_nested_objects_in_top_level(self) -> None:
+        """No nested object types at top level — only flat fields and line_items array."""
+        schema = InvoiceSchema.model_json_schema()
+        assert schema.get("additionalProperties") is False
+        for name, prop in schema["properties"].items():
+            if name == "line_items":
+                assert prop["type"] == "array"
+            else:
+                assert prop["type"] in ("string", "number", "integer"), (
+                    f"Field '{name}' has type '{prop.get('type')}' — "
+                    "top-level fields must be flat (string/number/integer)"
+                )
+
+    def test_line_item_schema_constraints(self) -> None:
+        """InvoiceLineItem must also be all-required with additionalProperties: false."""
+        schema = InvoiceLineItem.model_json_schema()
+        properties = set(schema["properties"].keys())
+        required = set(schema["required"])
+        assert properties == required, (
+            f"Optional line item fields: {properties - required}"
+        )
+        assert schema.get("additionalProperties") is False
 
 
 def test_default_schema_json_matches_pydantic_model() -> None:
